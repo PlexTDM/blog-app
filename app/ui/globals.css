@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: #0c0950;
+  --color-accent: #ff3e00;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+input {
+  box-shadow: none;
+  /* -webkit-box-shadow: inset var(--background) !important; */
+  filter: none;
+}
+input:is(:-webkit-autofill, :autofill) {
+  filter: none !important;
+  box-shadow: 0 0 0 100px var(--background) inset !important;
+  background-image: none !important;
+}
+section {
+  @apply container mx-auto;
+}
+
+.underline-effect:hover::after {
+  transform-origin: 0% 50%;
+  transform: scale3d(1, 1, 1);
+  transition: transform 0.3s;
+  transition: transform 200ms !important;
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-accent);
+  top: 100%;
+  left: 0;
+  pointer-events: none;
+  content: "";
+}
+
+.underline-effect:hover::after {
+  transform-origin: 100% 50%;
+  transform: scale3d(0, 1, 1);
+}
