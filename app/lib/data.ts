@@ -109,8 +109,7 @@ export const addComment = async (blogId: string, newComment: string) => {
       const err = await res.json();
       throw new Error(err.error);
     }
-    const { comment } = await res.json();
-    console.log(comment);
+    // const { comment } = await res.json();
     toast.success("Comment added successfully");
   } catch (err) {
     console.log(err);

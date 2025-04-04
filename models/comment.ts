@@ -10,7 +10,7 @@ export interface IComment extends Document {
   updatedAt: Date;
 }
 
-const userSchema = new Schema<IComment>(
+const commentSchema = new Schema<IComment>(
   {
     content: {
       type: String,
@@ -23,8 +23,8 @@ const userSchema = new Schema<IComment>(
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User",
       required: true,
+      ref: "User",
     },
     edited: {
       type: Boolean,
@@ -42,4 +42,4 @@ const userSchema = new Schema<IComment>(
   }
 );
 
-export default models.User || model<IComment>("User", userSchema);
+export default models.Comment || model<IComment>("Comment", commentSchema);

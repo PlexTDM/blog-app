@@ -14,7 +14,6 @@ import AddComment from "./addComment";
 const CommentSection = async ({ blogId }: { blogId: string }) => {
   // const fetchComments = async () => {
   const comments: ICommentWithAuthor[] = await getComments(blogId);
-  console.log(comments);
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -27,12 +26,12 @@ const CommentSection = async ({ blogId }: { blogId: string }) => {
         {comments.map((comment) => (
           <ListItem key={comment._id.toString()} alignItems="flex-start">
             <ListItemAvatar>
-              <Avatar src={comment.authorDetails.profilePicture}>
-                {comment.authorDetails.firstName}
+              <Avatar src={comment.author?.profilePicture}>
+                {comment.author?.firstName?.charAt(0)}
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={comment.authorDetails.firstName}
+              primary={comment.authorDetails?.firstName}
               secondary={
                 <>
                   <Typography

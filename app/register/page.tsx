@@ -48,7 +48,6 @@ export default function RegisterPage() {
           password: password,
           redirect: false,
         });
-        console.log(res);
         if (res?.error) {
           toast.error(res.error);
         }
@@ -56,7 +55,6 @@ export default function RegisterPage() {
         toast.success("Registration successful");
         router.push("/");
       }
-      console.log(data);
     } catch (err) {
       console.log("register front error", err);
     }

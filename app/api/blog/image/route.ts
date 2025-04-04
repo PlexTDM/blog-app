@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (req: NextRequest) => {
   try {
-    console.log("image upload req get wtf");
     const formData = await req.formData();
     const image = formData.get("image") as File;
     const extension = formData.get("extension") as string;
@@ -17,7 +16,6 @@ export const POST = async (req: NextRequest) => {
         extension: extension,
       },
     });
-    console.log(uploadedFile.url);
     return NextResponse.json({ url: uploadedFile.url });
   } catch (err) {
     console.log(err);

@@ -2,7 +2,7 @@ import Comment, { IComment } from "@/models/comment";
 import { connectDB } from "@/app/lib/mongodb";
 import Blog from "@/models/blog";
 import { NextRequest, NextResponse } from "next/server";
-import User, { IUser } from "@/models/user";
+import User from "@/models/user";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { revalidatePath } from "next/cache";
@@ -11,7 +11,7 @@ export const POST = async (req: NextRequest) => {
   try {
     const { content, blogId } = await req.json();
 
-    if (!content || !blogId) {
+    if (!content?.trim() || !blogId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -20,24 +20,39 @@ export const POST = async (req: NextRequest) => {
     await connectDB();
 
     const session = await getServerSession(authOptions);
-    if (!session) {
+
+    if (!session?.user) {
       return NextResponse.json(
         { error: "You must be logged in to comment" },
         { status: 401 }
       );
     }
-    const comment = new Comment({
+
+    const user = await User.findById(session.user.id);
+    if (!user) {
+      return NextResponse.json(
+        { error: "User account not found" },
+        { status: 404 }
+      );
+    }
+    const blogExists = await Blog.exists({ _id: blogId });
+    if (!blogExists) {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+    }
+
+    const comment = await Comment.create({
       content,
-      author: session.user.id,
       blogId,
+      author: user._id,
     });
 
-    await comment.save();
-
-    // Add comment to blog's comments array
-    await Blog.findByIdAndUpdate(blogId, {
-      $push: { comments: comment._id },
-    });
+    await Blog.findByIdAndUpdate(
+      blogId,
+      {
+        $push: { comments: comment._id },
+      },
+      { new: true }
+    );
 
     revalidatePath(`/blogs/${blogId}`);
     revalidatePath(`/blogs`);
@@ -60,6 +75,14 @@ export const GET = async (req: NextRequest) => {
     }
     await connectDB();
     const comments = (await Comment.find({ blogId: blogId })
+      .populate({
+        path: "author",
+        select: "firstName lastName profilePicture",
+        options: {
+          lean: true,
+          limit: 10,
+        },
+      })
       .sort({
         createdAt: -1,
       })
@@ -69,31 +92,7 @@ export const GET = async (req: NextRequest) => {
       return NextResponse.json([], { status: 404 });
     }
 
-    const commentsWithAuthor = await Promise.all(
-      comments.map(async (comment) => {
-        const author = (await User.findById(
-          comment.author
-        ).lean()) as IUser | null;
-        if (!author) {
-          return {
-            ...comment,
-            authorDetails: {
-              firstName: "anonymous",
-            },
-          };
-        }
-        return {
-          ...comment,
-          authorDetails: {
-            firstName: author.firstName,
-            lastName: author.lastName,
-            profilePicture: author.profilePicture,
-          },
-        };
-      })
-    );
-
-    return NextResponse.json(commentsWithAuthor, { status: 200 });
+    return NextResponse.json(comments, { status: 200 });
   } catch (err) {
     console.log("get comments", err);
     return NextResponse.json(
@@ -102,9 +101,14 @@ export const GET = async (req: NextRequest) => {
     );
   }
 };
-export interface ICommentWithAuthor extends IComment {
-  authorDetails: {
-    _id: string;
+export interface ICommentWithAuthor {
+  _id: string;
+  content: string;
+  edited: boolean;
+  blogId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  author: {
     firstName: string;
     lastName: string;
     profilePicture: string;
